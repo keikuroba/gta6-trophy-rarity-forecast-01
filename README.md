@@ -38,7 +38,10 @@ that. This entry decomposes the rate and forecasts each part:
   [0.01, 99.99]. When the history never refreshed, the median is instead
   `last_rate / 2` — one refresh is expected before the target, players
   roughly doubling while earned counts stay put. The median is also never
-  allowed to move more than 4 logit units from the last observed rate.
+  allowed to move more than 5 logit units from the last observed rate. A
+  trophy already at 100% gets `[95, 99, 100, 100, 100]`: it survived a ~6x
+  player jump at 100%, so the top quantiles stay at 100 while the lower
+  tail hedges against dilution by new players.
 - **Spread** (logit scale): fit residuals of E and P (floored at 0.25 and
   0.10), an extrapolation-leverage term (0.35 per log-time unit past the
   last read), a random-walk term (0.5 per sqrt(day) of horizon), and a

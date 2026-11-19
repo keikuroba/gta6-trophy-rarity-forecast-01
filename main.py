@@ -33,8 +33,8 @@ LAUNCH = datetime(2026, 11, 19, 0, 0, tzinfo=timezone.utc)
 LEVELS = [0.05, 0.25, 0.5, 0.75, 0.95]
 Z = [-1.645, -0.674, 0.0, 0.674, 1.645]
 
-# Maximum median move vs the last observed rate, in logit units (rev1).
-LOGIT_CLAMP = 4.0
+# Maximum median move vs the last observed rate, in logit units (rev2).
+LOGIT_CLAMP = 5.0
 # Flat-history branch: one refresh is expected before the target, players
 # roughly double while earned counts stay put, so halve the last rate.
 FLAT_DIVISOR = 2.0
@@ -250,6 +250,12 @@ def forecast_case(case, name):
         lg = logit(med)
         qs = [round4(min(100.0, max(0.0, inv_logit(lg + z * sigma)))) for z in Z]
         qs = [max(qs[j - 1], qs[j]) if j > 0 else qs[j] for j in range(5)]
+        if last_rate == 100:
+            # A trophy every tracked player already holds survived a ~6x
+            # player jump at 100%: it is almost certainly a start-of-game
+            # trophy, so keep the top quantiles at 100 but hedge the lower
+            # tail in case new players dilute it.
+            qs = [95.0, 99.0, 100, 100, 100]
         rows.append({"id": trophy["id"], "q": qs})
 
     return {"trophies": rows}
